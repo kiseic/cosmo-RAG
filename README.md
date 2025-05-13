@@ -44,7 +44,7 @@ To facilitate your running, we recommend installing the `Ollama` library to down
 ## Usage
 If you want to test with the dataset we used, you can run to download the data.
 ```bash
-bash datasets/download_ScienceQA.sh
+bash dataset/download_ScienceQA.sh
 ```
 
 ### Vector and graph retrieval agent
