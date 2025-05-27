@@ -1,0 +1,34 @@
+# ext/configs/tech_min_light.yaml - 軽量テスト用設定
+
+dataset: techreport          # HF id を読む専用 adapter
+
+split: test                  # REAL-MM-RAG のテスト split
+
+preprocess:
+  vision:                    # 画像→キャプション (あとで ON)
+    enable: false
+  chunker:
+    method: page             # ページ丸ごと 1 チャンク
+    overlap: 0
+
+agents:
+  text:                      # ★ TextRetrievalAgent
+    enable: true
+    model: all-MiniLM-L6-v2  # 軽量モデル（384次元）
+    index: indices/tech_text_faiss_light
+    top_k: 80
+
+  image:                     # ★ ImageRetrievalAgent (最初は OFF)
+    enable: false
+    model: Alibaba/Qwen-VL
+    index: indices/tech_img_hnsw
+    top_k: 40
+
+decision:                    # ★ VotingDecisionAgent
+  strategy: voting           # voting / expert_llm
+  voting:
+    method: rrf
+    lambda: 60               # rank 補正ハイパラ
+
+metrics: [recall@5, ndcg@5]  # bench/eval.py が計算
+device: cpu                  # CPU強制指定

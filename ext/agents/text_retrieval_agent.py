@@ -5,6 +5,8 @@ import faiss
 from sentence_transformers import SentenceTransformer
 from typing import List, Tuple, Dict, Any
 
+# multiprocessing設定はクラス内で行う
+
 class TextRetrievalAgent:
     """
     テキスト検索エージェント
@@ -16,7 +18,17 @@ class TextRetrievalAgent:
         self.index_path = index_path
         self.device = device
         
-        # Sentence-Transformers モデルを読み込み
+        # Sentence-Transformers モデルを読み込み（multiprocessing無効化）
+        import os
+        os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+        
+        # torch threadsも制限
+        try:
+            import torch
+            torch.set_num_threads(1)
+        except:
+            pass
+            
         self.model = SentenceTransformer(model_name, device=device)
         
         # FAISS インデックスとメタデータを読み込み
@@ -30,7 +42,12 @@ class TextRetrievalAgent:
             self.index = faiss.read_index(self.index_path)
             
             # メタデータファイルも読み込み
-            metadata_path = self.index_path.replace('.faiss', '_metadata.pkl')
+            # メタデータパス生成（.faiss拡張子の有無に関わらず）
+            if self.index_path.endswith('.faiss'):
+                metadata_path = self.index_path.replace('.faiss', '_metadata.pkl')
+            else:
+                metadata_path = self.index_path + '_metadata.pkl'
+                
             if os.path.exists(metadata_path):
                 with open(metadata_path, 'rb') as f:
                     self.doc_metadata = pickle.load(f)
@@ -61,7 +78,13 @@ class TextRetrievalAgent:
         
         # テキストを埋め込みベクトルに変換
         print(f"Embedding {len(texts)} documents...")
-        embeddings = self.model.encode(texts, show_progress_bar=True)
+        # マルチプロセス警告回避のため単スレッド実行
+        embeddings = self.model.encode(
+            texts, 
+            show_progress_bar=False, 
+            batch_size=16,
+            convert_to_numpy=True
+        )
         
         # FAISS インデックスを構築
         dimension = embeddings.shape[1]
@@ -78,7 +101,11 @@ class TextRetrievalAgent:
         os.makedirs(os.path.dirname(self.index_path), exist_ok=True)
         faiss.write_index(self.index, self.index_path)
         
-        metadata_path = self.index_path.replace('.faiss', '_metadata.pkl')
+        # メタデータパス生成（.faiss拡張子の有無に関わらず）
+        if self.index_path.endswith('.faiss'):
+            metadata_path = self.index_path.replace('.faiss', '_metadata.pkl')
+        else:
+            metadata_path = self.index_path + '_metadata.pkl'
         with open(metadata_path, 'wb') as f:
             pickle.dump(self.doc_metadata, f)
         

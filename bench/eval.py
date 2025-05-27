@@ -93,11 +93,8 @@ def evaluate_retrieval(config: dict) -> Dict[str, Any]:
             print(f"Processing query {i+1}/{len(queries)}")
         
         query = query_data['query']
-        # answersからdoc_idを抽出（TechReportデータセット形式に依存）
-        relevant_docs = []
-        for answer in query_data.get('answers', []):
-            if isinstance(answer, dict) and 'doc_id' in answer:
-                relevant_docs.append(answer['doc_id'])
+        # 新しいデータ形式では relevant_docs が直接提供される
+        relevant_docs = query_data.get('relevant_docs', [])
         
         # 各エージェントで検索実行
         hits_dict = {}
