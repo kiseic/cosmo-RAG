@@ -1,0 +1,33 @@
+# マルチモーダル構成（テキスト + 画像キャプション検索）
+dataset: techreport
+split: test
+
+preprocess:
+  vision:
+    enable: true                  # 画像キャプション生成を有効化
+    model: Salesforce/blip2-opt-2.7b
+  chunker:
+    method: page
+    overlap: 0
+
+agents:
+  text:
+    enable: true
+    model: sentence-transformers/all-MiniLM-L6-v2
+    index: indices/tech_text_faiss
+    top_k: 40
+
+  image:
+    enable: true                  # 画像検索を有効化
+    model: sentence-transformers/all-MiniLM-L6-v2
+    index: indices/tech_img_faiss
+    top_k: 40
+
+decision:
+  strategy: voting
+  voting:
+    method: rrf
+    lambda: 60
+
+metrics: [recall@5, ndcg@5]
+device: cpu                       # CPU開発用

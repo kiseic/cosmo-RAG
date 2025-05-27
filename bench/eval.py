@@ -21,6 +21,7 @@ sys.path.insert(0, str(project_root))
 
 from ext.adapters.techreport_adapter import iter_docs, iter_queries
 from ext.agents.text_retrieval_agent import TextRetrievalAgent
+from ext.agents.image_retrieval_agent import ImageRetrievalAgent
 from ext.decision.voting_agent import VotingDecisionAgent
 
 def load_config(config_path: str) -> dict:
@@ -70,6 +71,15 @@ def evaluate_retrieval(config: dict) -> Dict[str, Any]:
             device=device
         )
         print(f"Loaded text agent: {text_config['model']}")
+    
+    if config.get('agents', {}).get('image', {}).get('enable', False):
+        image_config = config['agents']['image']
+        agents['image'] = ImageRetrievalAgent(
+            model_name=image_config['model'],
+            index_path=image_config['index'],
+            device=device
+        )
+        print(f"Loaded image agent: {image_config['model']}")
     
     # 決定エージェントを初期化
     decision_config = config.get('decision', {})

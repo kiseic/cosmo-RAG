@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "torch",
-    "faiss-cpu", 
+    "faiss-cpu",
     "datasets",
     "sentence-transformers",
     "uvicorn",
@@ -15,7 +15,9 @@ dependencies = [
     "rich",
     "pyyaml",
     "numpy",
-    "transformers"
+    "transformers",
+    "torchvision>=0.22.0",
+    "accelerate>=1.7.0",
 ]
 
 [build-system]
