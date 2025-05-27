@@ -35,8 +35,11 @@ class ImageRetrievalAgent:
         self.index = None
         self.metadata = []
         
-        # インデックスとメタデータを読み込み
-        self._load_index()
+        # インデックスとメタデータを読み込み（存在する場合のみ）
+        if os.path.exists(self.index_path):
+            self._load_index()
+        else:
+            print(f"Warning: Index file {self.index_path} not found")
     
     def _load_index(self):
         """Load FAISS index and metadata."""

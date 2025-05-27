@@ -20,7 +20,7 @@ sys.path.insert(0, str(project_root))
 from ext.adapters.techreport_adapter import iter_docs
 from ext.agents.text_retrieval_agent import TextRetrievalAgent
 from ext.agents.image_retrieval_agent import ImageRetrievalAgent
-from ext.preprocess.vision_encoder import VisionEncoder, load_image_from_bytes
+from ext.preprocess.vision_encoder_blip import VisionEncoderBLIP, load_image_from_bytes
 
 def load_config(config_path: str) -> dict:
     """YAML設定ファイルを読み込み"""
@@ -35,13 +35,14 @@ def generate_image_captions(documents: list, vision_config: dict, device: str) -
     print("Generating image captions...")
     # Apple Silicon MPS自動検出
     vision_device = "mps" if device == "cpu" and torch.backends.mps.is_available() else device
-    vision_encoder = VisionEncoder(device=vision_device)
+    vision_model = vision_config.get('model', 'Salesforce/blip-image-captioning-base')
+    vision_encoder = VisionEncoderBLIP(model_name=vision_model, device=vision_device)
     
     for i, doc in enumerate(documents):
         print(f"Processing image {i+1}/{len(documents)}")
         
-        # 画像バイトデータからPIL Imageに変換
-        image = load_image_from_bytes(doc['page_img'])
+        # 画像を取得（既にPIL Imageオブジェクト）
+        image = doc['page_img']
         if image is not None:
             caption = vision_encoder.generate_caption(image)
             doc['page_caption'] = caption
