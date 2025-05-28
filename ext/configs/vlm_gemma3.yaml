@@ -1,0 +1,40 @@
+# Gemma3-4B VLM設定  
+dataset: techreport
+split: test
+
+preprocess:
+  vision:
+    enable: true
+    model: Salesforce/blip-image-captioning-base
+  chunker:
+    method: page
+    overlap: 0
+
+agents:
+  text:
+    enable: true
+    model: sentence-transformers/all-MiniLM-L6-v2
+    index: indices/tech_text_gemma3_faiss
+    top_k: 20
+
+  image:
+    enable: true
+    model: sentence-transformers/all-MiniLM-L6-v2
+    index: indices/tech_img_gemma3_faiss
+    top_k: 20
+
+decision:
+  strategy: voting
+  voting:
+    method: rrf
+    lambda: 20
+
+generation:
+  enable: true
+  model_type: gemma3-4b           # Google Gemma3-4B
+  max_length: 180
+  temperature: 0.7
+  use_images: false               # Gemma3はテキストのみ
+
+metrics: [recall@5, ndcg@5]
+device: cpu

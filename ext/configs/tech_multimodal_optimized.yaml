@@ -29,5 +29,12 @@ decision:
     method: rrf
     lambda: 20                    # 最適化: 20 (デフォルト60から変更)
 
+generation:
+  enable: true
+  model_type: phi4-multimodal     # phi4-multimodal, gemma3-4b, qwen-vl-4b, llava-7b, lightweight
+  max_length: 150
+  temperature: 0.7
+  use_images: true                # マルチモーダル生成を使用
+
 metrics: [recall@5, ndcg@5]
 device: cpu                       # Apple Silicon MPS自動検出

@@ -1,0 +1,41 @@
+# Gemma3-4B テスト設定
+dataset: techreport
+split: test
+
+preprocess:
+  vision:
+    enable: true
+    model: Salesforce/blip-image-captioning-base
+  chunker:
+    method: page
+    overlap: 0
+
+agents:
+  text:
+    enable: true
+    model: sentence-transformers/all-MiniLM-L6-v2
+    index: indices/tech_text_gemma_faiss
+    top_k: 20
+
+  image:
+    enable: true
+    model: sentence-transformers/all-MiniLM-L6-v2
+    index: indices/tech_img_gemma_faiss
+    top_k: 20
+
+decision:
+  strategy: voting
+  voting:
+    method: rrf
+    lambda: 20
+
+generation:
+  enable: true
+  framework: mlx                    # HuggingFace VLMエージェント使用
+  model_type: gemma3-4b            # Gemma3-4B (要認証)
+  max_length: 200
+  temperature: 0.7
+  use_images: false                # Gemmaはテキストのみ
+
+metrics: [recall@5, ndcg@5]
+device: cpu

@@ -18,6 +18,9 @@ dependencies = [
     "transformers",
     "torchvision>=0.22.0",
     "accelerate>=1.7.0",
+    "mlx>=0.25.2",
+    "mlx-vlm>=0.1.26",
+    "huggingface-hub>=0.32.2",
 ]
 
 [build-system]

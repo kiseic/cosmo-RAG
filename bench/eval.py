@@ -22,6 +22,8 @@ sys.path.insert(0, str(project_root))
 from ext.adapters.techreport_adapter import iter_docs, iter_queries
 from ext.agents.text_retrieval_agent import TextRetrievalAgent
 from ext.agents.image_retrieval_agent import ImageRetrievalAgent
+from ext.agents.vlm_generation_agent import VLMGenerationAgent
+from ext.agents.mlx_vlm_generation_agent import MLXVLMGenerationAgent
 from ext.decision.voting_agent import VotingDecisionAgent
 
 def load_config(config_path: str) -> dict:
@@ -81,6 +83,25 @@ def evaluate_retrieval(config: dict) -> Dict[str, Any]:
         )
         print(f"Loaded image agent: {image_config['model']}")
     
+    # VLM生成エージェントを初期化
+    generation_agent = None
+    if config.get('generation', {}).get('enable', False):
+        gen_config = config['generation']
+        
+        # MLXフレームワーク使用の場合
+        if gen_config.get('framework') == 'mlx':
+            generation_agent = MLXVLMGenerationAgent(
+                model_type=gen_config.get('model_type', 'qwen2-vl-4b')
+            )
+            print(f"Loaded MLX VLM generation agent: {gen_config.get('model_type', 'qwen2-vl-4b')}")
+        else:
+            # 通常のHuggingFace VLM
+            generation_agent = VLMGenerationAgent(
+                model_type=gen_config.get('model_type', 'lightweight'),
+                device=device
+            )
+            print(f"Loaded VLM generation agent: {gen_config.get('model_type', 'lightweight')}")
+    
     # 決定エージェントを初期化
     decision_config = config.get('decision', {})
     if decision_config.get('strategy') == 'voting':
@@ -124,11 +145,27 @@ def evaluate_retrieval(config: dict) -> Dict[str, Any]:
         # 検索結果のdoc_idリストを作成
         retrieved_doc_ids = [doc_id for doc_id, score in final_hits]
         
+        # VLM生成（有効な場合）
+        generated_answer = None
+        if generation_agent:
+            # 検索結果をドキュメント形式に変換
+            retrieved_docs_for_gen = [
+                {'doc_id': doc_id, 'score': score} 
+                for doc_id, score in final_hits[:3]
+            ]
+            
+            generated_answer = generation_agent.generate_answer(
+                query=query,
+                retrieved_docs=retrieved_docs_for_gen,
+                max_length=config.get('generation', {}).get('max_length', 150)
+            )
+        
         # メトリクス計算
         query_result = {
             'query': query,
             'relevant_docs': relevant_docs,
             'retrieved_docs': retrieved_doc_ids,
+            'generated_answer': generated_answer,
             'metrics': {}
         }
         

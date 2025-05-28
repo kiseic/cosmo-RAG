@@ -1,0 +1,42 @@
+# Gemma3-4B マルチモーダルVLM設定（認証必要）
+# 使用前にHuggingFace認証が必要: huggingface-cli login
+dataset: techreport
+split: test
+
+preprocess:
+  vision:
+    enable: true
+    model: Salesforce/blip-image-captioning-base
+  chunker:
+    method: page
+    overlap: 0
+
+agents:
+  text:
+    enable: true
+    model: sentence-transformers/all-MiniLM-L6-v2
+    index: indices/opt_text
+    top_k: 80
+
+  image:
+    enable: true
+    model: sentence-transformers/all-MiniLM-L6-v2
+    index: indices/opt_image
+    top_k: 40
+
+decision:
+  strategy: voting
+  voting:
+    method: rrf
+    lambda: 60                      # パフォーマンス向上
+
+generation:
+  enable: true
+  framework: mlx                    # HuggingFace VLMエージェント使用
+  model_type: gemma3-4b            # Google Gemma3-4B マルチモーダルVLM (要認証)
+  max_length: 250
+  temperature: 0.7
+  use_images: true                 # マルチモーダル生成を使用
+
+metrics: [recall@5, ndcg@5]
+device: cpu                        # Apple Silicon MPS自動検出

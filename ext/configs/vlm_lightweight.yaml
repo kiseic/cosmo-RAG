@@ -1,0 +1,40 @@
+# 軽量テンプレートベース設定（VLMなし）
+dataset: techreport
+split: test
+
+preprocess:
+  vision:
+    enable: true
+    model: Salesforce/blip-image-captioning-base
+  chunker:
+    method: page
+    overlap: 0
+
+agents:
+  text:
+    enable: true
+    model: sentence-transformers/all-MiniLM-L6-v2
+    index: indices/tech_text_lite_faiss
+    top_k: 20
+
+  image:
+    enable: true
+    model: sentence-transformers/all-MiniLM-L6-v2
+    index: indices/tech_img_lite_faiss
+    top_k: 20
+
+decision:
+  strategy: voting
+  voting:
+    method: rrf
+    lambda: 20
+
+generation:
+  enable: true
+  model_type: lightweight         # テンプレートベース（高速）
+  max_length: 100
+  temperature: 0.5
+  use_images: false
+
+metrics: [recall@5, ndcg@5]
+device: cpu
